@@ -52,9 +52,9 @@ class Consumer:
                 time_str = match.group(1)
                 log_postfix = datetime.datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S").strftime(self.log_postfix)
                 log_file = self.out_dir + "/" + self.exchange + log_postfix
-                with open(log_file, "w+") as f:
-                    f.write(body+"\n")
-                    f.close()
+                f=open(log_file, "a")
+                f.write(body+"\n")
+                f.close()
 
 
         return
