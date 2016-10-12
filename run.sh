@@ -1,2 +1,2 @@
 #!/bin/bash
-nohup /usr/local/bin/python SchedulingThread.py &
+/usr/local/bin/python SchedulingThread.py &

@@ -4,6 +4,7 @@ import threading
 import json
 import time
 import datetime
+import logging
 
 from CurlRequest import CurlRequest
 from RabbitmqConfigParser import RabbitmqConfigParser
@@ -21,6 +22,7 @@ class SchedulingThread(threading.Thread):
     def get_available_exchanges(self):
         rabbitmq_parser = RabbitmqConfigParser()
         auto_scan = rabbitmq_parser.parse().get("consumer", "auto_scan")
+	print "auto_scan=%s" % auto_scan
         if auto_scan == 'true':
             # 调用rabbitMQ的http api接口获取可用的exchange列表
             http_api_url = rabbitmq_parser.parse().get("global", "http_api_url")
@@ -63,17 +65,21 @@ class SchedulingThread(threading.Thread):
                 self.current_consuming_exchange_set.remove(exchange)
 
     def run(self):
+	logging.basicConfig(filename='logger.log', level=logging.INFO)
         while True:
             try:
+		logging.info("[%s]开始一轮新的扫描......" % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 self.get_available_exchanges()
                 self.start_subprocess()
                 self.update_meta()
-                time.sleep(int(RabbitmqConfigParser().parse().get("consumer", "detect_period")))
             except Exception, ex:
                 print "[%s][Exception]程序异常: %s" % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ex)
+                logging.info("[%s][Exception]程序异常: %s" % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ex))
             except RuntimeError, err:
                 print "[%s][Error]程序异常" % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), err)
+                logging.info("[%s][Error]程序异常" % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), err))
 
+            time.sleep(int(RabbitmqConfigParser().parse().get("consumer", "detect_period")))
 
 if __name__ == '__main__':
     sche = SchedulingThread()
