@@ -3,6 +3,7 @@
 import threading
 import json
 import time
+import datetime
 
 from CurlRequest import CurlRequest
 from RabbitmqConfigParser import RabbitmqConfigParser
@@ -63,10 +64,15 @@ class SchedulingThread(threading.Thread):
 
     def run(self):
         while True:
-            self.get_available_exchanges()
-            self.start_subprocess()
-            self.update_meta()
-            time.sleep(int(RabbitmqConfigParser().parse().get("consumer", "detect_period")))
+            try:
+                self.get_available_exchanges()
+                self.start_subprocess()
+                self.update_meta()
+                time.sleep(int(RabbitmqConfigParser().parse().get("consumer", "detect_period")))
+            except Exception, ex:
+                print "[%s][Exception]程序异常: %s" % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ex)
+            except RuntimeError, err:
+                print "[%s][Error]程序异常" % (datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), err)
 
 
 if __name__ == '__main__':
